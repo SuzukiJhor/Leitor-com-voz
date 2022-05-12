@@ -36,56 +36,74 @@ const setVoice = (event) => {
     utterance.voice = selectedVoice
 }
 
-const createExpressionBox = ({ img, text }) => {
-    const div = document.createElement('div');
-
-    div.classList.add('expression-box');
-    div.innerHTML = `
-        <img src="${img}" alt="${text}">
-        <p class = "info">${text}</p>
-    `
-    div.addEventListener('click', () => {
-        setTextMessage(text)
-        speakText()
-
-        div.classList.add('active')
-        setTimeout(() => {
-            div.classList.remove('active')
-        }, 1000)
-
-    })
-
-    main.appendChild(div)
+const addExpressionBoxesIntoDom = () => {
+    main.innerHTML = humanExpressions.map(({ img, text }) =>
+        `<div class='expression-box' >
+    <img src="${img}" alt="${text}" data-js='${text}'>
+       <p class = "info" data-js='${text}'>${text}</p>
+    </div>
+    `).join('')
 }
 
-humanExpressions.forEach(createExpressionBox)
+addExpressionBoxesIntoDom()
 
-let voices = []
+const addStyleIntoDom = (dataValue) => {
+    const div = document.querySelector(`.expression-box`)
+    div.classList.add('active')
+    setTimeout(() => {
+        div.classList.remove('active')
+    }, 1000)
+}
 
-speechSynthesis.addEventListener('voiceschanged', () => {
-    voices = speechSynthesis.getVoices()
-    console.log(voices)
+main.addEventListener('click', event => {
+
+    const clickedElement = event.target
+    const clickedElementText = clickedElement.dataset.js
+    const target = ['img', 'p'].some(elementName =>
+        clickedElement.tagName.toLowerCase() === elementName.toLowerCase())
+
+    if (target) {
+        setTextMessage(clickedElementText)
+        speakText()
+        addStyleIntoDom(clickedElementText)
+    }
+})
+
+const insertOptionElementIntoDOM = voices => {
+    selectElement.innerHTML = voices.reduce((accumulator, { name, lang }) => {
+        accumulator += `<option value='${name}'>${lang} | ${name}</option>`
+        return accumulator
+    }, '')
+}
+
+const setUtteranceVoice = voice => {
+    utterance.voice = voice;
+    const voiceOptionElement = selectElement
+        .querySelector(`[value="${voice.name}"]`)
+    voiceOptionElement.selected = true
+}
+
+const setPTBRVoices = voices => {
     const googleVoice = voices.find(voice =>
         voice.name === 'Google português do Brasil')
     const microsoftVoice = voices.find(voice =>
         voice.name === 'Microsoft Maria - Portuguese (Brazil)')
 
     if (googleVoice) {
-        utterance.voice = googleVoice
-    } else {
-        utterance.voice = microsoftVoice
-    };
+        setUtteranceVoice(googleVoice)
+    } else if (microsoftVoice) {
+        setUtteranceVoice(microsoftVoice)
+    }
+}
 
-    voices.forEach(({ name, lang }) => {
-        const option = document.createElement('option')
+let voices = []
 
-        option.value = name
-        option.textContent = `${lang}|${name}`
-        selectElement.appendChild(option)
-    })
+speechSynthesis.addEventListener('voiceschanged', () => {
+    voices = speechSynthesis.getVoices()
 
+    insertOptionElementIntoDOM(voices)
+    setPTBRVoices(voices)
 })
-
 
 buttonInsertText.addEventListener('click', () => {
     divTextBox.classList.add('show');
@@ -101,3 +119,46 @@ buttonReadText.addEventListener('click', () => {
     setTextMessage(textArea.value)
     speakText()
 })
+
+// voices.forEach(({ name, lang }) => {
+//     const option = document.createElement('option')
+
+//     option.value = name
+
+//     if (googleVoice && option.value === googleVoice.name) {
+//         utterance.voice = googleVoice
+//         option.selected = true;
+//     } else if (microsoftVoice && option.value === microsoftVoice.name) {
+//         utterance.voice = microsoftVoice
+//         option.selected = true;
+//     };
+
+//     option.textContent = `${lang}|${name}`
+//     selectElement.appendChild(option)
+// })
+
+// -------------------------------------------------------------------------------
+
+// const createExpressionBox = ({ img, text }) => {
+//     const div = document.createElement('div');
+
+//     div.classList.add('expression-box');
+//     div.innerHTML = `
+//         <img src="${img}" alt="${text}">
+//         <p class = "info">${text}</p>
+//     `
+//     div.addEventListener('click', () => {
+//         setTextMessage(text)
+//         speakText()
+
+//         div.classList.add('active')
+//         setTimeout(() => {
+//             div.classList.remove('active')
+//         }, 1000)
+
+//     })
+
+//     main.appendChild(div)
+// }
+
+// humanExpressions.forEach(createExpressionBox)
