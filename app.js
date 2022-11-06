@@ -47,11 +47,15 @@ const addExpressionBoxesIntoDom = () => {
 
 addExpressionBoxesIntoDom()
 
-const addStyleIntoDom = (dataValue) => {
-    const div = document.querySelector(`.expression-box`)
-    div.classList.add('active')
+const addStyleIntoDom = dataValue => {
+    console.log(dataValue)
+    const div = document.querySelector(`[data-js='${dataValue}']`)
+    const divParent = div.parentNode
+    console.log(divParent)
+
+    divParent.classList.add('active')
     setTimeout(() => {
-        div.classList.remove('active')
+        divParent.classList.remove('active')
     }, 1000)
 }
 
