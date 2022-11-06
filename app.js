@@ -21,20 +21,9 @@ const humanExpressions = [
     { img: './img/grandma.jpg', text: 'Quero ver a vovó' }
 ]
 
+let voices = []
+
 const utterance = new SpeechSynthesisUtterance()
-
-const setTextMessage = text => {
-    utterance.text = text;
-}
-
-const speakText = () => {
-    speechSynthesis.speak(utterance)
-}
-
-const setVoice = (event) => {
-    const selectedVoice = voices.find(voice => voice.name === event.target.value)
-    utterance.voice = selectedVoice
-}
 
 const addExpressionBoxesIntoDom = () => {
     main.innerHTML = humanExpressions.map(({ img, text }) =>
@@ -45,32 +34,11 @@ const addExpressionBoxesIntoDom = () => {
     `).join('')
 }
 
-addExpressionBoxesIntoDom()
+speechSynthesis.addEventListener('voiceschanged', () => {
+    voices = speechSynthesis.getVoices()
 
-const addStyleIntoDom = dataValue => {
-    console.log(dataValue)
-    const div = document.querySelector(`[data-js='${dataValue}']`)
-    const divParent = div.parentNode
-    console.log(divParent)
-
-    divParent.classList.add('active')
-    setTimeout(() => {
-        divParent.classList.remove('active')
-    }, 1000)
-}
-
-main.addEventListener('click', event => {
-
-    const clickedElement = event.target
-    const clickedElementText = clickedElement.dataset.js
-    const target = ['img', 'p'].some(elementName =>
-        clickedElement.tagName.toLowerCase() === elementName.toLowerCase())
-
-    if (target) {
-        setTextMessage(clickedElementText)
-        speakText()
-        addStyleIntoDom(clickedElementText)
-    }
+    insertOptionElementIntoDOM(voices)
+    setPTBRVoices(voices)
 })
 
 const insertOptionElementIntoDOM = voices => {
@@ -78,13 +46,6 @@ const insertOptionElementIntoDOM = voices => {
         accumulator += `<option value='${name}'>${lang} | ${name}</option>`
         return accumulator
     }, '')
-}
-
-const setUtteranceVoice = voice => {
-    utterance.voice = voice;
-    const voiceOptionElement = selectElement
-        .querySelector(`[value="${voice.name}"]`)
-    voiceOptionElement.selected = true
 }
 
 const setPTBRVoices = voices => {
@@ -100,14 +61,36 @@ const setPTBRVoices = voices => {
     }
 }
 
-let voices = []
+const setUtteranceVoice = voice => {
+    utterance.voice = voice;
+    const voiceOptionElement = selectElement
+        .querySelector(`[value="${voice.name}"]`)
+    voiceOptionElement.selected = true
+}
 
-speechSynthesis.addEventListener('voiceschanged', () => {
-    voices = speechSynthesis.getVoices()
+const addStyleIntoDom = dataValue => {
+    
+    const div = document.querySelector(`[data-js='${dataValue}']`)
+    const divParent = div.parentNode
 
-    insertOptionElementIntoDOM(voices)
-    setPTBRVoices(voices)
-})
+    divParent.classList.add('active')
+    setTimeout(() => {
+        divParent.classList.remove('active')
+    }, 1000)
+}
+
+const setTextMessage = text => {
+    utterance.text = text;
+}
+
+const speakText = () => {
+    speechSynthesis.speak(utterance)
+}
+
+const setVoice = event => {
+    const selectedVoice = voices.find(voice => voice.name === event.target.value)
+    utterance.voice = selectedVoice
+}
 
 buttonInsertText.addEventListener('click', () => {
     divTextBox.classList.add('show');
@@ -123,6 +106,23 @@ buttonReadText.addEventListener('click', () => {
     setTextMessage(textArea.value)
     speakText()
 })
+
+
+main.addEventListener('click', event => {
+
+    const clickedElement = event.target
+    const clickedElementText = clickedElement.dataset.js
+    const target = ['img', 'p'].some(elementName =>
+        clickedElement.tagName.toLowerCase() === elementName.toLowerCase())
+
+    if (target) {
+        setTextMessage(clickedElementText)
+        speakText()
+        addStyleIntoDom(clickedElementText)
+    }
+})
+
+addExpressionBoxesIntoDom()
 
 // voices.forEach(({ name, lang }) => {
 //     const option = document.createElement('option')
